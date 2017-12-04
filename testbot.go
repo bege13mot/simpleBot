@@ -6,16 +6,11 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-// type Config struct {
-// 	TelegramBotToken string
-// 	MyID             int
-// 	FirstChat        int64
-// 	SecondChat       int64
-// }
 var (
 	myID       int
 	firstChat  int64
@@ -23,26 +18,18 @@ var (
 )
 
 func MainHandler(resp http.ResponseWriter, _ *http.Request) {
-	resp.Write([]byte("Hi there! I'm DndSpellsBot!"))
+	resp.Write([]byte("Hi there! I'm Bot!"))
 }
 
 func main() {
-	// подключаемся к боту с помощью токена
-	// file, _ := os.Open("config.json")
-	// decoder := json.NewDecoder(file)
-	// configuration := Config{}
-	// err := decoder.Decode(&configuration)
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
 	botToken := os.Getenv("TelegramBotToken")
-	strFirstChat := os.Getenv("FirstChat")
+	strChats := os.Getenv("Chats")
 	//strSecondChat := os.Getenv("SecondChat")
 	strMyID := os.Getenv("MyID")
 
 	bot, err := tgbotapi.NewBotAPI(botToken)
 	myID, err := strconv.Atoi(strMyID)
-	firstChat, err := strconv.ParseInt(strFirstChat, 10, 64)
+	list := strings.Split(strChats, ",")
 	//secondChat, err := strconv.ParseInt(strSecondChat, 10, 64)
 
 	if err != nil {
@@ -72,8 +59,11 @@ func main() {
 		if update.Message.From.ID == myID {
 			// Создав структуру - можно её отправить обратно боту
 			fmt.Println("Chat ID: ", update.Message.Chat.ID)
-			msg := tgbotapi.NewMessage(firstChat, update.Message.Text)
-			bot.Send(msg)
+			for _, chat := range list {
+				iChat, _ := strconv.ParseInt(chat, 10, 64)
+				msg := tgbotapi.NewMessage(iChat, update.Message.Text)
+				bot.Send(msg)
+			}
 		}
 	}
 }
