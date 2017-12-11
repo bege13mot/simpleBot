@@ -13,11 +13,6 @@ import (
 	"gopkg.in/telegram-bot-api.v4"
 )
 
-//MainHandler does wake up for heroku
-// func MainHandler(resp http.ResponseWriter, _ *http.Request) {
-// 	resp.Write([]byte("Hi there! I'm Bot!"))
-// }
-
 //Greeting does greeting string
 func Greeting() string {
 	first := []string{"Привет", "Доброе утро", "Шалом", "Мир вашему дому"}
@@ -29,12 +24,42 @@ func Greeting() string {
 }
 
 //PostMessages send messages to chats
-func PostMessages(bot *tgbotapi.BotAPI, list []string, text string) {
+func PostMessages(bot *tgbotapi.BotAPI, list []string, message string) {
 	for _, chat := range list {
 		iChat, _ := strconv.ParseInt(chat, 10, 64)
-		msg := tgbotapi.NewMessage(iChat, text)
+		msg := tgbotapi.NewMessage(iChat, message)
 		bot.Send(msg)
 	}
+}
+
+//RetrieveAndDelete from Pocket
+func RetrieveAndDelete(consumerKey string, accessToken string) (message string) {
+	client := pocket.NewClientWithAccessToken(consumerKey, accessToken, "")
+	req := pocket.NewRetrieveRequest().OnlyFavorited()
+	m, err := client.Retrieve(req)
+	if err != nil {
+		log.Printf("error in retrieve: %s", err)
+	}
+
+	text := Greeting()
+	if val, ok := m["list"].(map[string]interface{}); ok {
+
+		for k, v := range val {
+			url := v.(map[string]interface{})["given_url"]
+			title := v.(map[string]interface{})["resolved_title"]
+			text += url.(string) + " - " + title.(string) + "\n"
+			//Delete item from Pocket
+			req := new(pocket.ModifyRequest)
+			action := pocket.Action{Kind: pocket.ActionDelete, Params: map[string]string{"item_id": k}}
+			req.AddAction(action)
+			m, err := client.Modify(req)
+			if err != nil {
+				log.Printf("error in modify: %s", err)
+			}
+			log.Printf("modify response: %s\n", m)
+		}
+	}
+	return text
 }
 
 func main() {
@@ -65,34 +90,9 @@ func main() {
 			PostMessages(bot, list, update.Message.Text)
 
 		} else if update.Message.From.ID == myID && update.Message.Command() == "post" {
-			client := pocket.NewClientWithAccessToken(consumerKey, accessToken, "")
-			req := pocket.NewRetrieveRequest().OnlyFavorited()
-			m, err := client.Retrieve(req)
-			if err != nil {
-				log.Printf("error in retrieve: %s", err)
-			}
 
-			if val, ok := m["list"].(map[string]interface{}); ok {
-				text := Greeting()
-
-				for k, v := range val {
-					url := v.(map[string]interface{})["given_url"]
-					title := v.(map[string]interface{})["resolved_title"]
-					text += url.(string) + " - " + title.(string) + "\n"
-
-					//Delete item from Pocket
-					req := new(pocket.ModifyRequest)
-					action := pocket.Action{Kind: pocket.ActionDelete, Params: map[string]string{"item_id": k}}
-					req.AddAction(action)
-					m, err := client.Modify(req)
-					if err != nil {
-						log.Printf("error in modify: %s", err)
-					}
-					log.Printf("modify response: %s\n", m)
-				}
-
-				PostMessages(bot, list, text)
-			}
+			message := RetrieveAndDelete(consumerKey, accessToken)
+			PostMessages(bot, list, message)
 		}
 	}
 }
