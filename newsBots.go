@@ -41,7 +41,6 @@ func main() {
 	//bot.Debug = false
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	fmt.Println("Start")
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	fmt.Println("Start11")
@@ -51,15 +50,14 @@ func main() {
 	// if err != nil {
 	// 	log.Printf("Get update error: ", err)
 	// }
-	fmt.Println("Start22")
 
 	http.HandleFunc("/", MainHandler)
 	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 
-	fmt.Println("Start33")
-
 	// В канал updates будут приходить все новые сообщения.
 	for update := range updates {
+		fmt.Println("Start33")
+		fmt.Println("Start4", update.Message.Command())
 		if update.Message.From.ID == myID && update.Message.Command() == "" {
 			// Создав структуру - можно её отправить обратно боту
 			log.Printf("Chat ID: ", update.Message.Chat.ID)
