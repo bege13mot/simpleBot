@@ -78,9 +78,6 @@ func main() {
 	// 	log.Printf("Get update error: ", err)
 	// }
 
-	//u := tgbotapi.NewUpdate(0)
-	//u.Timeout = 60
-	//http.HandleFunc("/", MainHandler)
 	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 
 	// Receive new updates
