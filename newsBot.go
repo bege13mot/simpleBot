@@ -45,7 +45,7 @@ func main() {
 	u.Timeout = 60
 
 	updates := bot.ListenForWebhook("/" + botToken)
-	//updates, err := bot.GetUpdatesChan(u)
+	// updates, err := bot.GetUpdatesChan(u)
 	// if err != nil {
 	// 	log.Printf("Get update error: ", err)
 	// }
@@ -55,7 +55,6 @@ func main() {
 
 	// В канал updates будут приходить все новые сообщения.
 	for update := range updates {
-
 		if update.Message.From.ID == myID && update.Message.Command() == "" {
 			// Создав структуру - можно её отправить обратно боту
 			log.Printf("Chat ID: ", update.Message.Chat.ID)
