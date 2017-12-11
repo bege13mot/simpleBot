@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -43,7 +42,6 @@ func main() {
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
-	fmt.Println("Start11")
 
 	updates := bot.ListenForWebhook("/" + botToken)
 	// updates, err := bot.GetUpdatesChan(u)
@@ -56,8 +54,6 @@ func main() {
 
 	// В канал updates будут приходить все новые сообщения.
 	for update := range updates {
-		fmt.Println("Start33")
-		fmt.Println("Start4", update.Message.Command())
 		if update.Message.From.ID == myID && update.Message.Command() == "" {
 			// Создав структуру - можно её отправить обратно боту
 			log.Printf("Chat ID: ", update.Message.Chat.ID)
