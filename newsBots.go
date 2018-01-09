@@ -47,7 +47,7 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 		for k, v := range val {
 			url := v.(map[string]interface{})["given_url"]
 			title := v.(map[string]interface{})["resolved_title"]
-			text += url.(string) + " - " + title.(string) + "\n"
+			text += url.(string) + " - " + title.(string) + "\n" + "\n"
 			//Delete item from Pocket
 			req := new(pocket.ModifyRequest)
 			action := pocket.Action{Kind: pocket.ActionDelete, Params: map[string]string{"item_id": k}}
