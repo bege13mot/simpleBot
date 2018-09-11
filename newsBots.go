@@ -10,17 +10,23 @@ import (
 	"time"
 
 	"github.com/mallipeddi/pocket"
+	"github.com/turnage/graw/reddit"
 	"gopkg.in/telegram-bot-api.v4"
 )
+
+func getRandom(limit int) int {
+	s := rand.NewSource(time.Now().UnixNano())
+	r := rand.New(s)
+
+	return r.Intn(limit)
+}
 
 //Greeting does greeting string
 func Greeting() string {
 	first := []string{"Привет", "Доброе утро", "Шалом", "Мир вашему дому"}
 	second := []string{"человеки", "мешки с мясом", "котятки", "кожаные ..."}
-	s := rand.NewSource(time.Now().UnixNano())
-	r := rand.New(s)
 
-	return first[r.Intn(4)] + ", " + second[r.Intn(4)] + "!" + "\n\n"
+	return first[getRandom(len(first))] + ", " + second[getRandom(len(second))] + "!" + "\n\n"
 }
 
 //PostMessages send messages to chats
@@ -62,7 +68,57 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 	return text
 }
 
+func getRedditPictures() ([]string, error) {
+
+	log.Println("Start getRedditPictures")
+
+	clientID := os.Getenv("RClientID")
+	clientSecret := os.Getenv("RClientSecret")
+	username := os.Getenv("RUsername")
+	password := os.Getenv("RPassword")
+	topics := strings.Split(os.Getenv("Topics"), ",")
+
+	cfg := reddit.BotConfig{
+		Agent: "simpleBot",
+		App: reddit.App{
+			ID:       clientID,
+			Secret:   clientSecret,
+			Username: username,
+			Password: password,
+		},
+	}
+
+	rBot, error := reddit.NewBot(cfg)
+	if error != nil {
+		return nil, error
+	}
+
+	result := make([]string, 0)
+
+	for _, topic := range topics {
+		log.Println("reddit Topic: ", topic)
+
+		harvest, err := rBot.Listing("/r/"+topic, "")
+		if err != nil {
+			log.Println("Reddit Topic Listing ERROR: ", err)
+			break
+		}
+
+		for _, post := range harvest.Posts[:5] {
+			if strings.Contains(post.URL, "jpg") || strings.Contains(post.URL, "gif") {
+				result = append(result, post.URL)
+				break
+			}
+		}
+	}
+
+	ln := len(topics)
+
+	return []string{result[getRandom(ln)], result[getRandom(ln)]}, nil
+}
+
 func main() {
+
 	botToken := os.Getenv("TelegramBotToken")
 	consumerKey := os.Getenv("CONSUMER_KEY")
 	accessToken := os.Getenv("ACCESS_TOKEN")
@@ -90,6 +146,16 @@ func main() {
 
 			message := RetrieveAndDelete(consumerKey, accessToken)
 			PostMessages(bot, list, message)
+
+		} else if update.Message.From.ID == myID && update.Message.Command() == "picture" {
+			pictures, err := getRedditPictures()
+
+			if err == nil {
+				for _, pic := range pictures {
+					PostMessages(bot, list, pic)
+				}
+			}
 		}
+
 	}
 }
