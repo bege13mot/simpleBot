@@ -137,7 +137,7 @@ func getRedditPictures() ([]string, error) {
 
 	rnd1, rnd2 := getRandom(ln), getRandom(ln)
 	if rnd1 == rnd2 {
-		rnd2 = getRandom(ln)
+		rnd2 = ln - 1 - rnd1
 	}
 
 	return []string{result[rnd1], result[rnd2]}, nil
