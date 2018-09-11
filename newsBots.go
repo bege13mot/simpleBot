@@ -180,6 +180,7 @@ func main() {
 
 		} else if update.Message.From.ID == myID && update.Message.Command() == "picture" {
 			pictures, err := getRedditPictures()
+			log.Println("!! getRedditPictures, ", err, pictures)
 
 			if err == nil {
 				for _, pic := range pictures {
