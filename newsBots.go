@@ -127,15 +127,16 @@ func getRedditPictures() ([]string, error) {
 	}
 
 	log.Println("Before wait")
+
+	wg.Wait()
+	log.Println("After wait")
+	close(pipe)
+
 	result := make([]string, len(pipe))
 
 	for i := range pipe {
 		result = append(result, i)
 	}
-
-	wg.Wait()
-	log.Println("After wait")
-	close(pipe)
 
 	ln := len(topics)
 
