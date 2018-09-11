@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
@@ -126,15 +127,14 @@ func getRedditPictures() ([]string, error) {
 		go retrieveURL(pipe, rBot, topic, wg)
 	}
 
-	log.Println("Before wait")
-
 	wg.Wait()
-	log.Println("After wait")
 	close(pipe)
 
 	result := make([]string, len(pipe))
+	fmt.Println("!!!!, ", pipe)
 
 	for i := range pipe {
+		fmt.Println("ii: ", i)
 		result = append(result, i)
 	}
 
