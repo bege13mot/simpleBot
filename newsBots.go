@@ -70,12 +70,15 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 	return text
 }
 
-func retrieveUrl(pipe chan<- string, bot reddit.Bot, topic string, wg *sync.WaitGroup) {
+func retrieveURL(pipe chan<- string, bot reddit.Bot, topic string, wg *sync.WaitGroup) {
 	defer wg.Done()
+
+	log.Println("retrieveURL", topic)
 
 	harvest, err := bot.Listing("/r/"+topic, "")
 	if err != nil {
 		log.Println("Reddit Topic Listing ERROR: ", err)
+		return
 	}
 
 	runtime.Gosched()
@@ -86,6 +89,7 @@ func retrieveUrl(pipe chan<- string, bot reddit.Bot, topic string, wg *sync.Wait
 			break
 		}
 	}
+	log.Println("retrieveURL", topic, "END")
 }
 
 func getRedditPictures() ([]string, error) {
@@ -119,10 +123,12 @@ func getRedditPictures() ([]string, error) {
 	for _, topic := range topics {
 		log.Println("reddit Topic: ", topic)
 		wg.Add(1)
-		go retrieveUrl(pipe, rBot, topic, wg)
+		go retrieveURL(pipe, rBot, topic, wg)
 	}
 
+	log.Println("Before wait")
 	wg.Wait()
+	log.Println("After wait")
 	close(pipe)
 
 	result := make([]string, len(pipe))
