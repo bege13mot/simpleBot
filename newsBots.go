@@ -1,11 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,8 +23,7 @@ func getRandom(limit int) int {
 	return r.Intn(limit)
 }
 
-//Greeting does greeting string
-func Greeting() string {
+func getGreeting() string {
 	first := []string{"Привет", "Доброе утро", "Шалом", "Мир вашему дому"}
 	second := []string{"человеки", "мешки с мясом", "котятки", "кожаные ..."}
 
@@ -49,7 +48,7 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 		log.Printf("error in retrieve: %s", err)
 	}
 
-	text := Greeting()
+	text := getGreeting()
 	if val, ok := m["list"].(map[string]interface{}); ok {
 
 		for k, v := range val {
@@ -86,7 +85,7 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 		return
 	}
 
-	// runtime.Gosched()
+	runtime.Gosched()
 
 	for _, post := range harvest.Posts[:5] {
 		if strings.Contains(post.URL, "jpg") || strings.Contains(post.URL, "gif") {
@@ -94,7 +93,6 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 			break
 		}
 	}
-	log.Println("retrieveURL", topic, "END")
 }
 
 func getRedditPictures() ([]string, error) {
@@ -117,11 +115,6 @@ func getRedditPictures() ([]string, error) {
 		},
 	}
 
-	// rBot, error := reddit.NewBot(cfg)
-	// if error != nil {
-	// 	return nil, error
-	// }
-
 	wg := &sync.WaitGroup{}
 	pipe := make(chan string, 10)
 
@@ -135,10 +128,8 @@ func getRedditPictures() ([]string, error) {
 	close(pipe)
 
 	result := make([]string, 0)
-	fmt.Println("!!!!, ", pipe)
 
 	for i := range pipe {
-		fmt.Println("ii: ", i)
 		result = append(result, i)
 	}
 
@@ -184,7 +175,6 @@ func main() {
 
 		} else if update.Message.From.ID == myID && update.Message.Command() == "picture" {
 			pictures, err := getRedditPictures()
-			log.Println("!! getRedditPictures, ", err, pictures)
 
 			if err == nil {
 				for _, pic := range pictures {
