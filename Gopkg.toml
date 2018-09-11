@@ -39,3 +39,6 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[metadata.heroku]
+  root-package = "github.com/bege13mot/simpleBot"
