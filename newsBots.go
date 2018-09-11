@@ -5,8 +5,10 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mallipeddi/pocket"
@@ -68,6 +70,24 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 	return text
 }
 
+func retrieveUrl(pipe chan<- string, bot reddit.Bot, topic string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	harvest, err := bot.Listing("/r/"+topic, "")
+	if err != nil {
+		log.Println("Reddit Topic Listing ERROR: ", err)
+	}
+
+	runtime.Gosched()
+
+	for _, post := range harvest.Posts[:5] {
+		if strings.Contains(post.URL, "jpg") || strings.Contains(post.URL, "gif") {
+			pipe <- post.URL
+			break
+		}
+	}
+}
+
 func getRedditPictures() ([]string, error) {
 
 	log.Println("Start getRedditPictures")
@@ -93,28 +113,32 @@ func getRedditPictures() ([]string, error) {
 		return nil, error
 	}
 
-	result := make([]string, 0)
+	wg := &sync.WaitGroup{}
+	pipe := make(chan string, 1)
 
 	for _, topic := range topics {
 		log.Println("reddit Topic: ", topic)
+		wg.Add(1)
+		go retrieveUrl(pipe, rBot, topic, wg)
+	}
 
-		harvest, err := rBot.Listing("/r/"+topic, "")
-		if err != nil {
-			log.Println("Reddit Topic Listing ERROR: ", err)
-			break
-		}
+	wg.Wait()
+	close(pipe)
 
-		for _, post := range harvest.Posts[:5] {
-			if strings.Contains(post.URL, "jpg") || strings.Contains(post.URL, "gif") {
-				result = append(result, post.URL)
-				break
-			}
-		}
+	result := make([]string, len(pipe))
+
+	for i := range pipe {
+		result = append(result, i)
 	}
 
 	ln := len(topics)
 
-	return []string{result[getRandom(ln)], result[getRandom(ln)]}, nil
+	rnd1, rnd2 := getRandom(ln), getRandom(ln)
+	if rnd1 == rnd2 {
+		rnd2 = getRandom(ln)
+	}
+
+	return []string{result[rnd1], result[rnd2]}, nil
 }
 
 func main() {
