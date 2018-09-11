@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -71,10 +70,15 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 	return text
 }
 
-func retrieveURL(pipe chan<- string, bot reddit.Bot, topic string, wg *sync.WaitGroup) {
+func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
 	log.Println("retrieveURL", topic)
+
+	bot, error := reddit.NewBot(cfg)
+	if error != nil {
+		return
+	}
 
 	harvest, err := bot.Listing("/r/"+topic, "")
 	if err != nil {
@@ -82,7 +86,7 @@ func retrieveURL(pipe chan<- string, bot reddit.Bot, topic string, wg *sync.Wait
 		return
 	}
 
-	runtime.Gosched()
+	// runtime.Gosched()
 
 	for _, post := range harvest.Posts[:5] {
 		if strings.Contains(post.URL, "jpg") || strings.Contains(post.URL, "gif") {
@@ -113,10 +117,10 @@ func getRedditPictures() ([]string, error) {
 		},
 	}
 
-	rBot, error := reddit.NewBot(cfg)
-	if error != nil {
-		return nil, error
-	}
+	// rBot, error := reddit.NewBot(cfg)
+	// if error != nil {
+	// 	return nil, error
+	// }
 
 	wg := &sync.WaitGroup{}
 	pipe := make(chan string, 10)
@@ -124,13 +128,13 @@ func getRedditPictures() ([]string, error) {
 	for _, topic := range topics {
 		log.Println("reddit Topic: ", topic)
 		wg.Add(1)
-		go retrieveURL(pipe, rBot, topic, wg)
+		go retrieveURL(pipe, cfg, topic, wg)
 	}
 
 	wg.Wait()
 	close(pipe)
 
-	result := make([]string, len(pipe))
+	result := make([]string, 0)
 	fmt.Println("!!!!, ", pipe)
 
 	for i := range pipe {
