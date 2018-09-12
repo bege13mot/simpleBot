@@ -41,24 +41,26 @@ func main() {
 
 	// Receive new updates
 	for update := range updates {
-		if update.Message.From.ID == myID && update.Message.Command() == "" {
-			log.Printf("Chat ID: %d", update.Message.Chat.ID)
-			postMessages(bot, list, update.Message.Text)
 
-		} else if update.Message.From.ID == myID && update.Message.Command() == "post" {
+		if update.Message.From.ID == myID {
+			switch command := update.Message.Command(); command {
+			case "":
+				log.Printf("Chat ID: %d", update.Message.Chat.ID)
+				postMessages(bot, list, update.Message.Text)
 
-			message := pocket.RetrieveAndDelete(consumerKey, accessToken)
-			postMessages(bot, list, message)
+			case "post":
+				postMessages(bot, list, pocket.RetrieveAndDelete(consumerKey, accessToken))
 
-		} else if update.Message.From.ID == myID && update.Message.Command() == "picture" {
-			pictures, err := reddit.Get2RedditPictures()
-
-			if err == nil {
-				for _, pic := range pictures {
-					postMessages(bot, list, pic)
+			case "picture":
+				pictures, err := reddit.Get2RedditPictures()
+				if err == nil {
+					for _, pic := range pictures {
+						postMessages(bot, list, pic)
+					}
 				}
-			}
-		}
 
+			}
+
+		}
 	}
 }
