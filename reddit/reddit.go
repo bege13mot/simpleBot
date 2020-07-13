@@ -14,7 +14,12 @@ import (
 
 func uniqRandom(max int, n int) []int {
 	m := make(map[int]bool, n)
+<<<<<<< HEAD
 	for len(m) <= n {
+=======
+
+	for len(m) < n {
+>>>>>>> 6d783d0... Optimize getPicture
 		x := pocket.GetRandom(max)
 		m[x] = true
 	}
@@ -77,30 +82,24 @@ func GetRedditPictures(numberOfPictures int) ([]string, error) {
 	wg := &sync.WaitGroup{}
 	pipe := make(chan string, 10)
 
-	for _, topic := range topics {
-		log.Println("reddit Topic: ", topic)
+	//retrive Pictures
+	ln := len(topics)
+	indexes := uniqRandom(ln, numberOfPictures)
+
+	for _, i := range indexes {
+		log.Println("reddit Topic: ", topics[i])
 		wg.Add(1)
-		go retrieveURL(pipe, cfg, topic, wg)
+		go retrieveURL(pipe, cfg, topics[i], wg)
 	}
 
 	wg.Wait()
 	close(pipe)
 
-	result := make([]string, 0)
+	result := make([]string, 0, numberOfPictures)
 
 	for i := range pipe {
 		result = append(result, i)
 	}
 
-	ln := len(topics)
-
-	indexes := uniqRandom(ln, numberOfPictures)
-	answer := make([]string, 0, numberOfPictures)
-
-	for _, v := range indexes {
-		answer = append(answer, result[v])
-	}
-
-	log.Println("Indexes: ", indexes)
-	return answer, nil
+	return result, nil
 }
