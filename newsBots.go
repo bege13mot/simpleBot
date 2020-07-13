@@ -52,7 +52,7 @@ func main() {
 				postMessages(bot, list, pocket.RetrieveAndDelete(consumerKey, accessToken))
 
 			case "picture":
-				pictures, err := reddit.Get2RedditPictures()
+				pictures, err := reddit.GetRedditPictures(4)
 				if err == nil {
 					for _, pic := range pictures {
 						postMessages(bot, list, pic)

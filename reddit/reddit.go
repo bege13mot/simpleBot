@@ -12,6 +12,21 @@ import (
 	"github.com/turnage/graw/reddit"
 )
 
+func uniqRandom(max int, n int) []int {
+	m := make(map[int]bool, n)
+	for len(m) <= n {
+		x := pocket.GetRandom(max)
+		m[x] = true
+	}
+
+	result := make([]int, 0, n)
+
+	for k := range m {
+		result = append(result, k)
+	}
+
+	return result
+}
 func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -38,8 +53,8 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 	}
 }
 
-//Get2RedditPictures return 2 random pictures
-func Get2RedditPictures() ([]string, error) {
+//GetRedditPictures return random pictures
+func GetRedditPictures(numberOfPictures int) ([]string, error) {
 
 	log.Println("Start getRedditPictures")
 
@@ -79,11 +94,13 @@ func Get2RedditPictures() ([]string, error) {
 
 	ln := len(topics)
 
-	rnd1, rnd2 := pocket.GetRandom(ln), pocket.GetRandom(ln)
-	if rnd1 == rnd2 {
-		rnd2 = pocket.GetRandom(ln)
+	indexes := uniqRandom(ln, numberOfPictures)
+	answer := make([]string, 0, numberOfPictures)
+
+	for _, v := range indexes {
+		answer = append(answer, result[v])
 	}
 
-	log.Println("rnd1, rnd2, result", rnd1, rnd2, result)
-	return []string{result[rnd1], result[rnd2]}, nil
+	log.Println("Indexes: ", indexes)
+	return answer, nil
 }
