@@ -17,8 +17,8 @@ func GetRandom(limit int) int {
 }
 
 func getGreeting() string {
-	first := []string{"Привет", "Доброе утро", "Шалом", "Мир вашему дому"}
-	second := []string{"человеки", "мешки с мясом", "котятки", "кожаные ..."}
+	first := []string{"Привет", "Доброе утро", "Шалом", "Мир вашему дому, Алоха"}
+	second := []string{"человеки", "мешки с мясом", "котятки", "кожаные ...", "людишки"}
 
 	return first[GetRandom(len(first))] + ", " + second[GetRandom(len(second))] + "!" + "\n\n"
 }

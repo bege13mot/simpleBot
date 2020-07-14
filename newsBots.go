@@ -16,7 +16,7 @@ func postMessages(bot *tgbotapi.BotAPI, list []string, message string) {
 	for _, chat := range list {
 		iChat, _ := strconv.ParseInt(chat, 10, 64)
 		msg := tgbotapi.NewMessage(iChat, message)
-		bot.Send(msg)
+		_, _ = bot.Send(msg)
 	}
 }
 
@@ -27,9 +27,18 @@ func main() {
 	accessToken := os.Getenv("ACCESS_TOKEN")
 	myID, _ := strconv.Atoi(os.Getenv("MyID"))
 	list := strings.Split(os.Getenv("Chats"), ",")
+	port := ":" + os.Getenv("PORT")
 
 	bot, _ := tgbotapi.NewBotAPI(botToken)
 	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	//Pictures
+	numberOfPictures, _ := strconv.Atoi(os.Getenv("NumberOfPictures"))
+	clientID := os.Getenv("RClientID")
+	clientSecret := os.Getenv("RClientSecret")
+	username := os.Getenv("RUsername")
+	password := os.Getenv("RPassword")
+	topics := strings.Split(os.Getenv("Topics"), ",")
 
 	updates := bot.ListenForWebhook("/" + botToken)
 	// updates, err := bot.GetUpdatesChan(u)
@@ -37,7 +46,7 @@ func main() {
 	// 	log.Printf("Get update error: ", err)
 	// }
 
-	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	go http.ListenAndServe(port, nil)
 
 	// Receive new updates
 	for update := range updates {
@@ -52,7 +61,7 @@ func main() {
 				postMessages(bot, list, pocket.RetrieveAndDelete(consumerKey, accessToken))
 
 			case "picture":
-				pictures, err := reddit.GetRedditPictures(4)
+				pictures, err := reddit.GetRedditPictures(numberOfPictures, clientID, clientSecret, username, password, topics)
 				if err == nil {
 					for _, pic := range pictures {
 						postMessages(bot, list, pic)

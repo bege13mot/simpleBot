@@ -2,7 +2,6 @@ package reddit
 
 import (
 	"log"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -12,7 +11,7 @@ import (
 	"github.com/turnage/graw/reddit"
 )
 
-func uniqRandom(max int, n int) []int {
+func getUniqRandom(max int, n int) []int {
 	m := make(map[int]bool, n)
 <<<<<<< HEAD
 	for len(m) <= n {
@@ -59,15 +58,9 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 }
 
 //GetRedditPictures return random pictures
-func GetRedditPictures(numberOfPictures int) ([]string, error) {
+func GetRedditPictures(numberOfPictures int, clientID string, clientSecret string, username string, password string, topics []string) ([]string, error) {
 
 	log.Println("Start getRedditPictures")
-
-	clientID := os.Getenv("RClientID")
-	clientSecret := os.Getenv("RClientSecret")
-	username := os.Getenv("RUsername")
-	password := os.Getenv("RPassword")
-	topics := strings.Split(os.Getenv("Topics"), ",")
 
 	cfg := reddit.BotConfig{
 		Agent: "simpleBot",
@@ -84,7 +77,11 @@ func GetRedditPictures(numberOfPictures int) ([]string, error) {
 
 	//retrive Pictures
 	ln := len(topics)
-	indexes := uniqRandom(ln, numberOfPictures)
+	if numberOfPictures > len(topics) {
+		numberOfPictures = len(topics)
+	}
+
+	indexes := getUniqRandom(ln, numberOfPictures)
 
 	for _, i := range indexes {
 		log.Println("reddit Topic: ", topics[i])
