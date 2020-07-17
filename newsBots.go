@@ -12,11 +12,25 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-func postMessages(bot *tgbotapi.BotAPI, list []string, message string) {
+func postMessage(bot *tgbotapi.BotAPI, list []string, message string) {
 	for _, chat := range list {
 		iChat, _ := strconv.ParseInt(chat, 10, 64)
 		msg := tgbotapi.NewMessage(iChat, message)
-		_, _ = bot.Send(msg)
+		_, err := bot.Send(msg)
+		if err != nil {
+			log.Printf("postMessage Error: %v", err)
+		}
+	}
+}
+
+func forwardMessage(bot *tgbotapi.BotAPI, list []string, fromChatID int64, messageID int) {
+	for _, chat := range list {
+		iChat, _ := strconv.ParseInt(chat, 10, 64)
+		msg := tgbotapi.NewForward(iChat, fromChatID, messageID)
+		_, err := bot.Send(msg)
+		if err != nil {
+			log.Printf("forwardMessage Error: %v", err)
+		}
 	}
 }
 
@@ -59,25 +73,21 @@ func main() {
 
 	// Receive new updates
 	for update := range updates {
-		log.Println("! Update ", update, update.Message, update.Message)
 
 		if update.Message.From.ID == myID {
 			switch command := update.Message.Command(); command {
 			case "":
 				log.Printf("Chat ID: %d", update.Message.Chat.ID)
-				postMessages(bot, list, update.Message.Text)
+				forwardMessage(bot, list, int64(myID), update.Message.MessageID)
 
 			case "post":
 				for _, post := range pocket.RetrieveAndDelete(consumerKey, accessToken) {
-					postMessages(bot, list, post)
+					postMessage(bot, list, post)
 				}
 
 			case "picture":
-				pictures, err := reddit.GetRedditPictures(numberOfPictures, clientID, clientSecret, username, password, topics)
-				if err == nil {
-					for _, pic := range pictures {
-						postMessages(bot, list, pic)
-					}
+				for _, pic := range reddit.GetRedditPictures(numberOfPictures, clientID, clientSecret, username, password, topics) {
+					postMessage(bot, list, pic)
 				}
 
 			}

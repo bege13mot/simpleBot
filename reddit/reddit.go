@@ -13,12 +13,8 @@ import (
 
 func getUniqRandom(max int, n int) []int {
 	m := make(map[int]bool, n)
-<<<<<<< HEAD
-	for len(m) <= n {
-=======
 
 	for len(m) < n {
->>>>>>> 6d783d0... Optimize getPicture
 		x := pocket.GetRandom(max)
 		m[x] = true
 	}
@@ -43,7 +39,7 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 
 	harvest, err := bot.Listing("/r/"+topic, "")
 	if err != nil {
-		log.Println("Reddit Topic Listing ERROR: ", err)
+		log.Fatalln("Reddit Topic Listing ERROR: ", err)
 		return
 	}
 
@@ -58,7 +54,7 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 }
 
 //GetRedditPictures return random pictures
-func GetRedditPictures(numberOfPictures int, clientID string, clientSecret string, username string, password string, topics []string) ([]string, error) {
+func GetRedditPictures(numberOfPictures int, clientID string, clientSecret string, username string, password string, topics []string) []string {
 
 	log.Println("Start getRedditPictures")
 
@@ -98,5 +94,5 @@ func GetRedditPictures(numberOfPictures int, clientID string, clientSecret strin
 		result = append(result, i)
 	}
 
-	return result, nil
+	return result
 }

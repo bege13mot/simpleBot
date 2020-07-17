@@ -20,7 +20,7 @@ func getGreeting() string {
 	first := []string{"Привет", "Доброе утро", "Шалом", "Мир вашему дому, Алоха"}
 	second := []string{"человеки", "мешки с мясом", "котятки", "кожаные ...", "людишки"}
 
-	return first[GetRandom(len(first))] + ", " + second[GetRandom(len(second))] + "!" + "\n\n"
+	return first[GetRandom(len(first))] + ", " + second[GetRandom(len(second))] + "!"
 }
 
 //RetrieveAndDelete from Pocket
@@ -29,7 +29,7 @@ func RetrieveAndDelete(consumerKey string, accessToken string) []string {
 	req := pocket.NewRetrieveRequest().OnlyFavorited()
 	m, err := client.Retrieve(req)
 	if err != nil {
-		log.Printf("error in retrieve: %s", err)
+		log.Fatalf("error in retrieve from Pocket: %v", err)
 	}
 
 	result := make([]string, 0, 10)
@@ -47,7 +47,7 @@ func RetrieveAndDelete(consumerKey string, accessToken string) []string {
 			req.AddAction(action)
 			m, err := client.Modify(req)
 			if err != nil {
-				log.Printf("error in modify: %s", err)
+				log.Printf("error in modify from Pocket: %s", err)
 			}
 			log.Printf("modify response: %s\n", m)
 		}
