@@ -24,7 +24,7 @@ func getGreeting() string {
 }
 
 //RetrieveAndDelete from Pocket
-func RetrieveAndDelete(consumerKey string, accessToken string) (message string) {
+func RetrieveAndDelete(consumerKey string, accessToken string) []string {
 	client := pocket.NewClientWithAccessToken(consumerKey, accessToken, "")
 	req := pocket.NewRetrieveRequest().OnlyFavorited()
 	m, err := client.Retrieve(req)
@@ -32,13 +32,15 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 		log.Printf("error in retrieve: %s", err)
 	}
 
-	text := getGreeting()
+	result := make([]string, 0, 10)
+
+	result = append(result, getGreeting())
 	if val, ok := m["list"].(map[string]interface{}); ok {
 
 		for k, v := range val {
 			url := v.(map[string]interface{})["given_url"]
 			title := v.(map[string]interface{})["resolved_title"]
-			text += url.(string) + " - " + title.(string) + "\n" + "\n"
+			result = append(result, url.(string)+" - "+title.(string))
 			//Delete item from Pocket
 			req := new(pocket.ModifyRequest)
 			action := pocket.Action{Kind: pocket.ActionDelete, Params: map[string]string{"item_id": k}}
@@ -50,5 +52,5 @@ func RetrieveAndDelete(consumerKey string, accessToken string) (message string) 
 			log.Printf("modify response: %s\n", m)
 		}
 	}
-	return text
+	return result
 }

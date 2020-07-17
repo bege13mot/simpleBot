@@ -150,8 +150,19 @@ type Message struct {
 
 // Harvest is a set of all possible elements that Reddit could return in a
 // listing.
+//
+// Typically the items returned in this harvest are flat. You will not find
+// the comment tree for each post in their `Replies` field. This is because
+// that can be a lot of data. If you want a full comment tree, use the
+// `Thread` method on the bot with the post's `Permalink`.
 type Harvest struct {
 	Comments []*Comment
 	Posts    []*Post
 	Messages []*Message
+}
+
+type Submission struct {
+	ID   string `mapstructure:"id"`
+	Name string `mapstructure:"name"`
+	URL  string `mapstructure:"url"`
 }

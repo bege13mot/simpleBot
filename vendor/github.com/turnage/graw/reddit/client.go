@@ -18,6 +18,9 @@ type clientConfig struct {
 	// If all fields in App are set, this client will attempt to identify as
 	// a registered Reddit app using the credentials.
 	app App
+
+	// Custom http client, if nil default should be used
+	client *http.Client
 }
 
 // client executes http Requests and invisibly handles OAuth2 authorization.
@@ -68,9 +71,13 @@ func newClient(c clientConfig) (client, error) {
 		c.app.tokenURL = tokenURL
 	}
 
-	if c.app.configured() {
-		return newAppClient(c)
+	if c.app.unauthenticated() {
+		return &baseClient{clientWithAgent(c.agent)}, nil
 	}
 
-	return &baseClient{clientWithAgent(c.agent)}, nil
+	if err := c.app.validateAuth(); err != nil {
+		return nil, err
+	}
+
+	return newAppClient(c)
 }

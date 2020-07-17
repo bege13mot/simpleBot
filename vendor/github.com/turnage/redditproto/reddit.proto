@@ -123,6 +123,13 @@ message Link {
   repeated Comment comments = 33;
 }
 
+// LinkSet holds links and data set annotations.
+message LinkSet {
+  extensions 100 to max;
+  repeated Link links = 1;
+  optional string data = 2;
+}
+
 // Data type t4_
 message Message {
   extensions 100 to max;
@@ -148,6 +155,10 @@ message Message {
   // Implements Thing
   optional string id = 17;
   optional string name = 18;
+
+  // This field contains the chronological sequence of messages following this
+  // one.
+  repeated Message messages = 19;
 }
 
 // Data type t5_

@@ -9,7 +9,7 @@ import (
 
 	"github.com/bege13mot/simpleBot/pocket"
 	"github.com/bege13mot/simpleBot/reddit"
-	tgbotapi "gopkg.in/telegram-bot-api.v4"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 func postMessages(bot *tgbotapi.BotAPI, list []string, message string) {
@@ -25,20 +25,29 @@ func main() {
 	botToken := os.Getenv("TelegramBotToken")
 	consumerKey := os.Getenv("CONSUMER_KEY")
 	accessToken := os.Getenv("ACCESS_TOKEN")
-	myID, _ := strconv.Atoi(os.Getenv("MyID"))
+	myID, err := strconv.Atoi(os.Getenv("MyID"))
+	if err != nil {
+		log.Fatalln("Can't parse MyID")
+	}
 	list := strings.Split(os.Getenv("Chats"), ",")
 	port := ":" + os.Getenv("PORT")
 
-	bot, _ := tgbotapi.NewBotAPI(botToken)
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
 	//Pictures
-	numberOfPictures, _ := strconv.Atoi(os.Getenv("NumberOfPictures"))
+	numberOfPictures, err := strconv.Atoi(os.Getenv("NumberOfPictures"))
+	if err != nil {
+		log.Fatalln("Can't parse NumberOfPictures")
+	}
 	clientID := os.Getenv("RClientID")
 	clientSecret := os.Getenv("RClientSecret")
 	username := os.Getenv("RUsername")
 	password := os.Getenv("RPassword")
 	topics := strings.Split(os.Getenv("Topics"), ",")
+
+	bot, err := tgbotapi.NewBotAPI(botToken)
+	if err != nil {
+		log.Fatalln("Can't login by Telegram API")
+	}
+	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	updates := bot.ListenForWebhook("/" + botToken)
 	// updates, err := bot.GetUpdatesChan(u)
@@ -50,6 +59,7 @@ func main() {
 
 	// Receive new updates
 	for update := range updates {
+		log.Println("! Update ", update, update.Message, update.Message)
 
 		if update.Message.From.ID == myID {
 			switch command := update.Message.Command(); command {
@@ -58,7 +68,9 @@ func main() {
 				postMessages(bot, list, update.Message.Text)
 
 			case "post":
-				postMessages(bot, list, pocket.RetrieveAndDelete(consumerKey, accessToken))
+				for _, post := range pocket.RetrieveAndDelete(consumerKey, accessToken) {
+					postMessages(bot, list, post)
+				}
 
 			case "picture":
 				pictures, err := reddit.GetRedditPictures(numberOfPictures, clientID, clientSecret, username, password, topics)

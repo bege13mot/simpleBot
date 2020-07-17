@@ -2,20 +2,30 @@ package reddit
 
 import (
 	"net/http"
+	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
+
+var oauthScopes = []string{
+	"identity",
+	"read",
+	"privatemessages",
+	"submit",
+	"history",
+}
 
 type appClient struct {
 	baseClient
-	cfg   clientConfig
-	cli   *http.Client
-	token *oauth2.Token
+	cfg    clientConfig
+	cli    *http.Client
+	expiry time.Time
 }
 
 func (a *appClient) Do(req *http.Request) ([]byte, error) {
-	if a.token == nil || !a.token.Valid() {
+	if time.Until(a.expiry) < time.Minute*5 {
 		if err := a.authorize(); err != nil {
 			return nil, err
 		}
@@ -26,17 +36,17 @@ func (a *appClient) Do(req *http.Request) ([]byte, error) {
 
 func (a *appClient) authorize() error {
 	ctx := context.WithValue(oauth2.NoContext, oauth2.HTTPClient, a.cli)
+
+	if a.cfg.app.Username == "" || a.cfg.app.Password == "" {
+		a.baseClient.cli = a.clientCredentialsClient(ctx)
+		return nil
+	}
+
 	cfg := &oauth2.Config{
 		ClientID:     a.cfg.app.ID,
 		ClientSecret: a.cfg.app.Secret,
 		Endpoint:     oauth2.Endpoint{TokenURL: a.cfg.app.tokenURL},
-		Scopes: []string{
-			"identity",
-			"read",
-			"privatemessages",
-			"submit",
-			"history",
-		},
+		Scopes:       oauthScopes,
 	}
 
 	token, err := cfg.PasswordCredentialsToken(
@@ -44,15 +54,36 @@ func (a *appClient) authorize() error {
 		a.cfg.app.Username,
 		a.cfg.app.Password,
 	)
+	if err != nil {
+		return err
+	}
 
-	a.token = token
 	a.baseClient.cli = cfg.Client(ctx, token)
+	a.expiry = token.Expiry
 	return err
 }
 
+func (a *appClient) clientCredentialsClient(ctx context.Context) *http.Client {
+	cfg := &clientcredentials.Config{
+		ClientID:     a.cfg.app.ID,
+		ClientSecret: a.cfg.app.Secret,
+		TokenURL:     a.cfg.app.tokenURL,
+		Scopes:       oauthScopes,
+	}
+
+	return cfg.Client(ctx)
+}
+
 func newAppClient(c clientConfig) (*appClient, error) {
+	var client *http.Client
+	if c.client == nil {
+		client = clientWithAgent(c.agent)
+	} else {
+		client = patchWithAgent(c.client, c.agent)
+	}
+
 	a := &appClient{
-		cli: clientWithAgent(c.agent),
+		cli: client,
 		cfg: c,
 	}
 	return a, a.authorize()
