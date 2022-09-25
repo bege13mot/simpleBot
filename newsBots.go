@@ -63,11 +63,13 @@ func main() {
 	}
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	updates := bot.ListenForWebhook("/" + botToken)
-	// updates, err := bot.GetUpdatesChan(u)
-	// if err != nil {
-	// 	log.Printf("Get update error: ", err)
-	// }
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	// updates := bot.ListenForWebhook("/" + botToken)
+	updates, err := bot.GetUpdatesChan(u)
+	if err != nil {
+		log.Printf("Get update error: ", err)
+	}
 
 	go http.ListenAndServe(port, nil)
 
