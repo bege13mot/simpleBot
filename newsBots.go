@@ -68,7 +68,7 @@ func main() {
 	// updates := bot.ListenForWebhook("/" + botToken)
 	updates, err := bot.GetUpdatesChan(u)
 	if err != nil {
-		log.Printf("Get update error: ", err)
+		log.Fatalln("Get update error: ", err)
 	}
 
 	go http.ListenAndServe(port, nil)

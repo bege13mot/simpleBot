@@ -8,7 +8,7 @@ import (
 	"github.com/mallipeddi/pocket"
 )
 
-//GetRandom receive random int
+// GetRandom receive random int
 func GetRandom(limit int) int {
 	s := rand.NewSource(time.Now().UnixNano())
 	r := rand.New(s)
@@ -23,7 +23,7 @@ func getGreeting() string {
 	return first[GetRandom(len(first))] + ", " + second[GetRandom(len(second))] + "!"
 }
 
-//RetrieveAndDelete from Pocket
+// RetrieveAndDelete from Pocket
 func RetrieveAndDelete(consumerKey string, accessToken string) []string {
 	client := pocket.NewClientWithAccessToken(consumerKey, accessToken, "")
 	req := pocket.NewRetrieveRequest().OnlyFavorited()
