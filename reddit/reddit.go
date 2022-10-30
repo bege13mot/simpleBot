@@ -30,7 +30,7 @@ func getUniqRandom(max int, n int) []int {
 func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	log.Println("retrieveURL", topic)
+	log.Println("Retrieve URL", topic)
 
 	bot, error := reddit.NewBot(cfg)
 	if error != nil {
