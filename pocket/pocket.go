@@ -29,7 +29,7 @@ func RetrieveAndDelete(consumerKey string, accessToken string) []string {
 	req := pocket.NewRetrieveRequest().OnlyFavorited()
 	m, err := client.Retrieve(req)
 	if err != nil {
-		log.Fatalf("error in retrieve from Pocket: %v", err)
+		log.Fatalf("Error in retrieve from Pocket: %v", err)
 	}
 
 	result := make([]string, 0, 10)
@@ -47,9 +47,9 @@ func RetrieveAndDelete(consumerKey string, accessToken string) []string {
 			req.AddAction(action)
 			m, err := client.Modify(req)
 			if err != nil {
-				log.Printf("error in modify from Pocket: %s", err)
+				log.Fatalln("error in modify from Pocket: ", err)
 			}
-			log.Printf("modify response: %s\n", m)
+			log.Printf("Modify Response: %s\n", m)
 		}
 	}
 	return result

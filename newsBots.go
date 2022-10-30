@@ -18,7 +18,7 @@ func postMessage(bot *tgbotapi.BotAPI, list []string, message string) {
 		msg := tgbotapi.NewMessage(iChat, message)
 		_, err := bot.Send(msg)
 		if err != nil {
-			log.Printf("postMessage Error: %v", err)
+			log.Printf("Post Message Error: %v", err)
 		}
 	}
 }
@@ -29,7 +29,7 @@ func forwardMessage(bot *tgbotapi.BotAPI, list []string, fromChatID int64, messa
 		msg := tgbotapi.NewForward(iChat, fromChatID, messageID)
 		_, err := bot.Send(msg)
 		if err != nil {
-			log.Printf("forwardMessage Error: %v", err)
+			log.Printf("Forward Message Error: %v", err)
 		}
 	}
 }
