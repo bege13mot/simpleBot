@@ -53,7 +53,7 @@ func retrieveURL(pipe chan<- string, cfg reddit.BotConfig, topic string, wg *syn
 	}
 }
 
-//GetRedditPictures return random pictures
+// GetRedditPictures return random pictures
 func GetRedditPictures(numberOfPictures int, clientID string, clientSecret string, username string, password string, topics []string) []string {
 
 	log.Println("Start getRedditPictures")
