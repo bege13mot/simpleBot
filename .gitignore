@@ -13,3 +13,5 @@ _vendor*
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
+
+conf_fly.md
